@@ -12,6 +12,7 @@ const drawPoints = (ctx, aPoints) => {
 // function which draws continuous line base on mouse movement and adds points to array
 const drawMouse = (context, points, lastX, lastY, x, y, size) => {
   context.fillStyle = "#000000";
+  context.strokeStyle = "#000000";
   if (lastX && lastY && (x !== lastX || y !== lastY)) {
     context.lineWidth = 2 * size;
     context.beginPath();
