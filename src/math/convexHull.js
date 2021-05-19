@@ -24,7 +24,7 @@ const orientation = (p, q, r) => {
   return 2;
 };
 
-const convexhullMap = (ctx, aPoints, length) => {
+const convexhullMap = (aPoints, length) => {
   if (length < 3) {
     return [];
   }
