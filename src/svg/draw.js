@@ -26,4 +26,14 @@ const drawPolygon = (svg, sPoints) =>
     .attr("fill", "red")
     .style("stroke", "#000");
 
-export { updatePath, drawPath, drawPolygon };
+const drawCircle = (svg, pathArray) =>
+  svg
+    .selectAll("circle")
+    .data(pathArray)
+    .enter()
+    .append("circle")
+    .attr("r", 7)
+    .attr("cx", (d) => d.x)
+    .attr("cy", (d) => d.y);
+
+export { updatePath, drawPath, drawPolygon, drawCircle };
