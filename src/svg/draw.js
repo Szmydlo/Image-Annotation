@@ -10,8 +10,9 @@ const updatePath = (path) => {
   path.attr("d", (d) => line(d)); // Redraw the path:
 };
 
-const drawPath = (svg, points) =>
-  svg
+const drawPath = (points) =>
+  d3
+    .select("#sketchpad")
     .append("path")
     .data([points])
     .attr("class", "line")
@@ -19,15 +20,17 @@ const drawPath = (svg, points) =>
     .attr("fill", "none")
     .style("stroke", "#000");
 
-const drawPolygon = (svg, sPoints) =>
-  svg
+const drawPolygon = (sPoints) =>
+  d3
+    .select("#sketchpad")
     .append("polygon")
     .attr("points", sPoints)
     .attr("fill", "red")
     .style("stroke", "#000");
 
-const drawCircle = (svg, pathArray) =>
-  svg
+const drawCircle = (pathArray) =>
+  d3
+    .select("#sketchpad")
     .selectAll("circle")
     .data(pathArray)
     .enter()

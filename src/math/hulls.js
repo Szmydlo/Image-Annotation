@@ -24,7 +24,7 @@ const orientation = (p, q, r) => {
   return 2;
 };
 
-const convexhullMap = (aPoints, length) => {
+const convexHull = (aPoints, length) => {
   if (length < 3) {
     return [];
   }
@@ -56,4 +56,12 @@ const convexhullMap = (aPoints, length) => {
   return aHull;
 };
 
-module.exports = convexhullMap;
+// Concave hull logic based on picking every n-th element
+const concaveHull = (aPoints, length) => {
+  if (length < 3) {
+    return [];
+  }
+  return aPoints.filter((elem, index) => index % 10 === 0);
+};
+
+export { convexHull, concaveHull };

@@ -13,4 +13,4 @@ const dummyDownsampling = (aPoints) => {
   return aResult;
 };
 
-module.exports = dummyDownsampling;
+export default dummyDownsampling;
