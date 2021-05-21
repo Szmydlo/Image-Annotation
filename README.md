@@ -9,7 +9,10 @@ Advanced internship by Quality Match
 4. Up-/Downsampling of the number of vertices
 
 ## Current state:
-Apps follows mouse stroke and draws polygon based on mouse movement with vertices marked (some of the vertices are removed by dummy sampling for now). Created polygon can be moved (dragged) or adjusted (by dragging one of the vertices)
+Apps follows mouse stroke and draws polygon based on mouse movement with vertices marked.
+User chooses if the polygon should be convex or concave.
+Polygon is then downsampled to wished number of vertices.
+Created polygon can be moved (dragged) or adjusted (by dragging one of the vertices)
 
 ## How to run:
 1. Clone the repository

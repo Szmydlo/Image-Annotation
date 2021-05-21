@@ -13,4 +13,11 @@ const clearAll = (polygon, circles) => {
   d3.select("#sketchpad").selectAll("*").remove();
 };
 
-export default clearAll;
+const updateEventListeners = (onPress, onUp, onLeave) => {
+  d3.select("#sketchpad")
+    .on("mousedown", onPress)
+    .on("mouseup", onUp)
+    .on("mouseleave", onLeave);
+};
+
+export { clearAll, updateEventListeners };

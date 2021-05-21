@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import * as d3 from "d3";
 import { convexHull, concaveHull } from "./math/hulls";
-import dummyDownsampling from "./math/dummyDownsampling";
+import visvalingamDownsampling from "./math/visvalingamDownsampling";
 import { updatePath, drawPath, drawPolygon, drawCircle } from "./svg/draw";
-import clearAll from "./utils/utilsFunctions";
+import { clearAll, updateEventListeners } from "./utils/utilsFunctions";
 
 const ImageAnnotation = () => {
   const [chosenHull, setChosenHull] = useState("convex");
-  // const [hullFunction, setHullFunction] = useState(convexHull);
+  const [numberOfVertices, setNumberOfVertices] = useState("15");
   let drawing = false;
   let path;
   let points = [];
   let hullFunction = convexHull;
+  let iVertices = 15;
 
   const onMove = (e) => {
     const point = d3.pointer(e);
@@ -44,8 +45,11 @@ const ImageAnnotation = () => {
     // clear hand-drawn path/previously rendered polygon
     d3.select("#sketchpad").selectAll("*").remove();
 
-    // gift wrapping + some downsampling
-    const aHull = dummyDownsampling(hullFunction(points, points.length));
+    // gift wrapping + Visvalingam downsampling
+    const aHull = visvalingamDownsampling(
+      hullFunction(points, points.length),
+      numberOfVertices !== 1 ? numberOfVertices : iVertices
+    );
     const sPoints = aHull
       .reduce((sum, curr) => `${sum + curr.x},${curr.y} `, "")
       .trim();
@@ -121,50 +125,70 @@ const ImageAnnotation = () => {
   };
 
   useEffect(() => {
-    d3.select("#sketchpad")
-      .on("mousedown", onPress)
-      .on("mouseup", onUp)
-      .on("mouseleave", onLeave);
+    updateEventListeners(onPress, onUp, onLeave);
   }, []); // componentDidMount behaviour
 
+  // event handlers
   const handleChange = (evt) => {
     // update state for radio button and reattach events for svg to use proper hull function
     if (evt.target.value === "convex") {
       setChosenHull("convex");
       hullFunction = convexHull;
-      d3.select("#sketchpad")
-        .on("mousedown", onPress)
-        .on("mouseup", onUp)
-        .on("mouseleave", onLeave);
     } else {
       setChosenHull("concave");
       hullFunction = concaveHull;
-      d3.select("#sketchpad")
-        .on("mousedown", onPress)
-        .on("mouseup", onUp)
-        .on("mouseleave", onLeave);
     }
+    updateEventListeners(onPress, onUp, onLeave);
   };
+
+  const handleVertexChange = (evt) => {
+    // make input for vertices editable
+    setNumberOfVertices(evt.target.value);
+    updateEventListeners(onPress, onUp, onLeave);
+  };
+
+  const handleSubmit = (evt) => {
+    // update number of vertices and hull function, reattach events
+    evt.preventDefault();
+    iVertices = parseInt(numberOfVertices, 10);
+    hullFunction = chosenHull === "convex" ? convexHull : concaveHull;
+    updateEventListeners(onPress, onUp, onLeave);
+  };
+
   return (
     <div>
       <svg id="sketchpad" width="600" height="300" />
-      <div className="radio">
-        <input
-          label="Convex"
-          type="radio"
-          id="convexRadio"
-          value="convex"
-          checked={chosenHull === "convex"}
-          onChange={handleChange}
-        />
-        <input
-          label="Concave"
-          type="radio"
-          id="concaveRadio"
-          value="concave"
-          checked={chosenHull === "concave"}
-          onChange={handleChange}
-        />
+      <div className="wrapper">
+        <div className="radio">
+          <input
+            label="Convex"
+            type="radio"
+            id="convexRadio"
+            value="convex"
+            checked={chosenHull === "convex"}
+            onChange={handleChange}
+          />
+          <input
+            label="Concave"
+            type="radio"
+            id="concaveRadio"
+            value="concave"
+            checked={chosenHull === "concave"}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="vertex">
+          <form onSubmit={handleSubmit}>
+            Number of vertices:
+            <input
+              type="text"
+              value={numberOfVertices}
+              id="vertexNumber"
+              onChange={handleVertexChange}
+            />
+            <button type="submit">Set</button>
+          </form>
+        </div>
       </div>
     </div>
   );

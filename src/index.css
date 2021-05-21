@@ -13,26 +13,43 @@ code {
 }
 
 #sketchpad {
-  /* border: 1px solid; */
   border-radius: 3px;
 	box-shadow: inset 0 0 0 3px rgba(35, 33, 45, 0.3),
 		0 0 0 3px rgba(185, 185, 185, 0.3);
 }
 
+.wrapper {
+  width: 600px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  font-size: 14px;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+		"Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+#vertexNumber {
+  width: 30px;
+}
+
+.vertex {
+  vertical-align: middle;
+  text-align: center;
+  height: 20px;
+  margin: auto;
+}
 
 .radio {
   width: 150px;
-	background: #454857;
 	padding: 4px;
-	border-radius: 3px;
-	box-shadow: inset 0 0 0 3px rgba(35, 33, 45, 0.3),
-		0 0 0 3px rgba(185, 185, 185, 0.3);
 	position: relative;
   display: flex;
   flex-direction: row;
   justify-content: center;
   margin-left: 20px;
   margin-top: 5px;
+  margin-right: 20px;
 }
 
 .radio input {
@@ -44,17 +61,12 @@ code {
 	cursor: pointer;
 	border-radius: 2px;
 	padding: 4px 8px;
-	background: #454857;
-	color: #bdbdbdbd;
-	font-size: 14px;
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-		"Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
-		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	color: black;
 	transition: all 100ms linear;
 }
 
 .radio input:checked {
-	background-image: linear-gradient(180deg, #95d891, #74bbad);
+	background-color: black;
 	color: #fff;
 	box-shadow: 0 1px 1px #0000002e;
 	text-shadow: 0 1px 0px #79485f7a;

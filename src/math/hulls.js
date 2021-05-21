@@ -1,3 +1,4 @@
+const CONCAVE_DIST = 3;
 // Convex hull logic based on gift wrapping algorithm
 const leftIndex = (aPoints) => {
   let minIndex = 0;
@@ -57,11 +58,12 @@ const convexHull = (aPoints, length) => {
 };
 
 // Concave hull logic based on picking every n-th element
+// output then optimized by Visvalignam algorithm
 const concaveHull = (aPoints, length) => {
   if (length < 3) {
     return [];
   }
-  return aPoints.filter((elem, index) => index % 10 === 0);
+  return aPoints.filter((elem, index) => index % CONCAVE_DIST === 0);
 };
 
 export { convexHull, concaveHull };
