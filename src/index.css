@@ -12,10 +12,14 @@ code {
     monospace;
 }
 
+span {
+  margin: auto;
+  height: 20px;
+}
+
 #sketchpad {
   border-radius: 3px;
-	box-shadow: inset 0 0 0 3px rgba(35, 33, 45, 0.3),
-		0 0 0 3px rgba(185, 185, 185, 0.3);
+	box-shadow: inset 0 0 0 3px rgba(35, 33, 45, 0.3);
 }
 
 .wrapper {
@@ -27,6 +31,39 @@ code {
 	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 		"Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
 		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.verticesPlusMinus {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  vertical-align: middle;
+  height:25px;
+  margin: auto;
+}
+
+.verticesPlusMinus button {
+  padding: 0;
+  border: none;
+  background-color: black;
+	color: #fff;
+  border-radius: 2px;
+	height: 23px;
+	transition: all 100ms linear;
+  margin: 2px;
+  width: 30px;
+}
+
+#submitVertices {
+  padding: 0;
+  border: none;
+  background-color: black;
+	color: #fff;
+  border-radius: 2px;
+	height: 23px;
+	transition: all 100ms linear;
+  margin: 2px;
+  width: 50px;
 }
 
 #vertexNumber {

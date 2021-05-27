@@ -20,4 +20,7 @@ const updateEventListeners = (onPress, onUp, onLeave) => {
     .on("mouseleave", onLeave);
 };
 
-export { clearAll, updateEventListeners };
+const stringFromPoints = (aPoints) =>
+  aPoints.reduce((sum, curr) => `${sum + curr.x},${curr.y} `, "").trim();
+
+export { clearAll, updateEventListeners, stringFromPoints };

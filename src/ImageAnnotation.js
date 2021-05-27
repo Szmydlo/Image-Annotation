@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import * as d3 from "d3";
 import { convexHull, concaveHull } from "./math/hulls";
 import visvalingamDownsampling from "./math/visvalingamDownsampling";
-import { updatePath, drawPath, drawPolygon, drawCircle } from "./svg/draw";
-import { clearAll, updateEventListeners } from "./utils/utilsFunctions";
+import {
+  updatePath,
+  drawPath,
+  drawPolygon,
+  drawCircle,
+  dragHandlers,
+} from "./svg/draw";
+import { updateEventListeners, stringFromPoints } from "./utils/utilsFunctions";
+import longestEdgeUpsampling from "./math/longestEdgeUpsampling";
 
 const ImageAnnotation = () => {
   const [chosenHull, setChosenHull] = useState("convex");
@@ -11,8 +18,11 @@ const ImageAnnotation = () => {
   let drawing = false;
   let path;
   let points = [];
-  let hullFunction = convexHull;
-  let iVertices = 15;
+  const hullFunction = useRef(convexHull);
+  const iVertices = useRef(15);
+  let dragPolygon;
+  let dragVertex;
+  const aHull = useRef([]);
 
   const onMove = (e) => {
     const point = d3.pointer(e);
@@ -45,79 +55,17 @@ const ImageAnnotation = () => {
     // clear hand-drawn path/previously rendered polygon
     d3.select("#sketchpad").selectAll("*").remove();
 
-    // gift wrapping + Visvalingam downsampling
-    const aHull = visvalingamDownsampling(
-      hullFunction(points, points.length),
-      numberOfVertices !== 1 ? numberOfVertices : iVertices
+    // // gift wrapping + Visvalingam downsampling
+    aHull.current = visvalingamDownsampling(
+      hullFunction.current(points, points.length),
+      iVertices.current
     );
-    const sPoints = aHull
-      .reduce((sum, curr) => `${sum + curr.x},${curr.y} `, "")
-      .trim();
+    const sPoints = stringFromPoints(aHull.current);
     const polygon = drawPolygon(sPoints);
-    const circles = drawCircle(aHull);
+    const circles = drawCircle(aHull.current);
 
-    // handlers on currently edited objects
-    let currCircle;
-    let currCircles;
-    let currIndex;
-    let currPolygon;
-
-    // add new event handlers for dragging: vertex - extend polygon, polygon - move polygon
-    let dragPolygon;
-    const dragVertex = d3
-      .drag()
-      .on("start", (e, d) => {
-        // find chosen circle and its index in convex hull
-        currCircle = e.sourceEvent.currentTarget;
-        currIndex = aHull.findIndex((elem) => elem.x === d.x && elem.y === d.y);
-      })
-      .on("drag", (e) => {
-        const point = d3.pointer(e);
-
-        // clear everything (helps with keeping vertices over polygon)
-        clearAll(currPolygon, currCircles);
-
-        // edit position of dragged circle and update hull
-        d3.select(currCircle).attr("cx", point[0]).attr("cy", point[1]);
-        aHull[currIndex] = { x: point[0].toString(), y: point[1].toString() };
-        const sPoints2 = aHull
-          .reduce((sum, curr) => `${sum + curr.x},${curr.y} `, "")
-          .trim();
-
-        // draw new polygon and vertices, attach event handlers
-        currPolygon = drawPolygon(sPoints2);
-        currCircles = drawCircle(aHull);
-        dragPolygon(currPolygon);
-        dragVertex(currCircles);
-      });
-
-    dragPolygon = d3
-      .drag()
-      .on("start", (e) => {
-        // get handler on polygon
-        currPolygon = e.sourceEvent.currentTarget;
-      })
-      .on("drag", (e) => {
-        // clear everything (helps with keeping vertices over polygon)
-        clearAll(currPolygon, currCircles);
-
-        // for each vertex of polygon update its position
-        aHull.forEach((elem, index) => {
-          aHull[index] = {
-            x: (parseInt(elem.x, 10) + e.dx).toString(),
-            y: (parseInt(elem.y, 10) + e.dy).toString(),
-          };
-        });
-        const sPoints2 = aHull
-          .reduce((sum, curr) => `${sum + curr.x},${curr.y} `, "")
-          .trim();
-
-        // draw new polygon and vertices, attach event handlers
-        currPolygon = drawPolygon(sPoints2);
-        currCircles = drawCircle(aHull);
-        dragPolygon(currPolygon);
-        dragVertex(currCircles);
-      });
+    // create drag handlers
+    [aHull.current, dragVertex, dragPolygon] = dragHandlers(aHull.current);
 
     // initialize event handling
     dragVertex(circles);
@@ -129,19 +77,19 @@ const ImageAnnotation = () => {
   }, []); // componentDidMount behaviour
 
   // event handlers
-  const handleChange = (evt) => {
+  const handleHullTypeChange = (evt) => {
     // update state for radio button and reattach events for svg to use proper hull function
     if (evt.target.value === "convex") {
       setChosenHull("convex");
-      hullFunction = convexHull;
+      hullFunction.current = convexHull;
     } else {
       setChosenHull("concave");
-      hullFunction = concaveHull;
+      hullFunction.current = concaveHull;
     }
     updateEventListeners(onPress, onUp, onLeave);
   };
 
-  const handleVertexChange = (evt) => {
+  const handleVertexNumberChange = (evt) => {
     // make input for vertices editable
     setNumberOfVertices(evt.target.value);
     updateEventListeners(onPress, onUp, onLeave);
@@ -150,8 +98,58 @@ const ImageAnnotation = () => {
   const handleSubmit = (evt) => {
     // update number of vertices and hull function, reattach events
     evt.preventDefault();
-    iVertices = parseInt(numberOfVertices, 10);
-    hullFunction = chosenHull === "convex" ? convexHull : concaveHull;
+    iVertices.current = parseInt(numberOfVertices, 10);
+    updateEventListeners(onPress, onUp, onLeave);
+  };
+
+  const handlePlus = () => {
+    // add one vertex on longest edge
+    // update vertex counter
+    setNumberOfVertices(parseInt(numberOfVertices, 10) + 1);
+    iVertices.current += 1;
+
+    // clear hand-drawn path/previously rendered polygon
+    d3.select("#sketchpad").selectAll("*").remove();
+
+    // Upsampling by 1
+    aHull.current = longestEdgeUpsampling(aHull.current);
+    const sPoints = stringFromPoints(aHull.current);
+    const polygon = drawPolygon(sPoints);
+    const circles = drawCircle(aHull.current);
+
+    // create drag handlers
+    [aHull.current, dragVertex, dragPolygon] = dragHandlers(aHull.current);
+
+    // initialize event handling
+    dragVertex(circles);
+    dragPolygon(polygon);
+    updateEventListeners(onPress, onUp, onLeave);
+  };
+
+  const handleMinus = () => {
+    // remove one vertex using Visvalingam algorithm
+    // update vertex counter
+    setNumberOfVertices(numberOfVertices - 1);
+    iVertices.current -= 1;
+
+    // clear hand-drawn path/previously rendered polygon
+    d3.select("#sketchpad").selectAll("*").remove();
+
+    // Visvalingam downsampling by 1
+    aHull.current = visvalingamDownsampling(
+      aHull.current,
+      aHull.current.length - 1
+    );
+    const sPoints = stringFromPoints(aHull.current);
+    const polygon = drawPolygon(sPoints);
+    const circles = drawCircle(aHull.current);
+
+    // create drag handlers
+    [aHull.current, dragVertex, dragPolygon] = dragHandlers(aHull.current);
+
+    // initialize event handling
+    dragVertex(circles);
+    dragPolygon(polygon);
     updateEventListeners(onPress, onUp, onLeave);
   };
 
@@ -166,7 +164,7 @@ const ImageAnnotation = () => {
             id="convexRadio"
             value="convex"
             checked={chosenHull === "convex"}
-            onChange={handleChange}
+            onChange={handleHullTypeChange}
           />
           <input
             label="Concave"
@@ -174,7 +172,7 @@ const ImageAnnotation = () => {
             id="concaveRadio"
             value="concave"
             checked={chosenHull === "concave"}
-            onChange={handleChange}
+            onChange={handleHullTypeChange}
           />
         </div>
         <div className="vertex">
@@ -184,10 +182,21 @@ const ImageAnnotation = () => {
               type="text"
               value={numberOfVertices}
               id="vertexNumber"
-              onChange={handleVertexChange}
+              onChange={handleVertexNumberChange}
             />
-            <button type="submit">Set</button>
+            <button id="submitVertices" type="submit">
+              Set
+            </button>
           </form>
+        </div>
+        <div className="verticesPlusMinus">
+          <span>Vertices:</span>
+          <button type="button" onClick={handlePlus}>
+            +
+          </button>
+          <button type="button" onClick={handleMinus}>
+            -
+          </button>
         </div>
       </div>
     </div>
